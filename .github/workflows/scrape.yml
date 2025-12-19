@@ -1,14 +1,10 @@
-name: Waymo Link Tracker
+name: Twitter Waymo Tracker
 
 on: [push]
-  # schedule:
-  #   - cron: "*/30 * * * *"
-  # workflow_dispatch:
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -16,18 +12,15 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install requests beautifulsoup4 lxml
+      - run: pip install requests beautifulsoup4 lxml
 
-      - name: Run scraper
-        run: |
-           sleep 5
-           python scraper/run.py
+      - run: |
+          sleep 5
+          python scraper/run.py
 
-      - name: Commit changes
-        run: |
+      - run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add data/posts.json data/seen.json
-          git diff --cached --quiet || git commit -m "Update tracked posts"
+          git diff --cached --quiet || git commit -m "Update Twitter referral codes"
           git push
