@@ -1,9 +1,9 @@
 name: Waymo Link Tracker
 
-on:
+on: [push]
   schedule:
     - cron: "*/30 * * * *"
-  workflow_dispatch: push
+  workflow_dispatch:
 
 jobs:
   scrape:
