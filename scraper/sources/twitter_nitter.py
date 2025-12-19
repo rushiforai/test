@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from utils import extract_code
 
-NITTERS = [
+NITTER_MIRRORS = [
     "https://nitter.net",
     "https://nitter.poast.org",
     "https://nitter.privacydev.net"
@@ -14,24 +14,24 @@ HEADERS = {
 }
 
 def fetch(keywords):
-    posts = []
+    results = []
 
-    for base in NITTERS:
+    for base in NITTER_MIRRORS:
         for kw in keywords:
-            url = f"{base}/search?f=tweets&q={kw}"
-            print(f"[twitter] {url}")
+            search_url = f"{base}/search?f=tweets&q={kw}"
+            print(f"[twitter] {search_url}")
 
             try:
-                r = requests.get(url, headers=HEADERS, timeout=20)
+                r = requests.get(search_url, headers=HEADERS, timeout=20)
                 if r.status_code != 200:
                     continue
 
                 soup = BeautifulSoup(r.text, "lxml")
 
-                for tweet in soup.select(".timeline-item"):
-                    text_el = tweet.select_one(".tweet-content")
-                    link_el = tweet.select_one("a.tweet-link")
-                    time_el = tweet.select_one("span.tweet-date a")
+                for item in soup.select(".timeline-item"):
+                    text_el = item.select_one(".tweet-content")
+                    link_el = item.select_one("a.tweet-link")
+                    time_el = item.select_one("span.tweet-date a")
 
                     if not (text_el and link_el and time_el):
                         continue
@@ -48,14 +48,15 @@ def fetch(keywords):
                         "%b %d, %Y · %I:%M %p UTC"
                     ).isoformat() + "Z"
 
-                    posts.append({
+                    results.append({
                         "platform": "twitter",
                         "code": code,
                         "url": link,
                         "timestamp": timestamp
                     })
 
-            except Exception:
+            except Exception as e:
+                print(f"[twitter] error: {e}")
                 continue
 
-    return posts
+    return results
