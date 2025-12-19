@@ -1,0 +1,23 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 30px;
+}
+
+.post {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.platform {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.meta {
+  font-size: 0.8em;
+  color: gray;
+}
+
+#filters button {
+  margin-right: 5px;
+}
