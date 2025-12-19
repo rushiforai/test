@@ -1,53 +1,45 @@
 import requests
 from datetime import datetime
-from utils import extract_code
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) "
-                  "Chrome/120.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0"
 }
 
 def fetch(keywords):
     posts = []
 
     for kw in keywords:
-        url = f"https://www.reddit.com/search.json?q={kw}&sort=new&limit=50"
+        url = f"https://www.reddit.com/search.json?q={kw}&sort=new&limit=25"
+        print(f"[reddit] querying: {url}")
 
-        try:
-            r = requests.get(url, headers=HEADERS, timeout=15)
+        r = requests.get(url, headers=HEADERS, timeout=15)
+        print(f"[reddit] status: {r.status_code}")
+        print(f"[reddit] content-type: {r.headers.get('Content-Type')}")
 
-            # ✅ HARD CHECKS
-            if r.status_code != 200:
-                print(f"[reddit] HTTP {r.status_code}")
-                continue
+        if r.status_code != 200:
+            continue
 
-            if "application/json" not in r.headers.get("Content-Type", ""):
-                print("[reddit] Non-JSON response (blocked)")
-                continue
+        if "json" not in r.headers.get("Content-Type", ""):
+            print("[reddit] blocked (HTML returned)")
+            print(r.text[:200])
+            continue
 
-            data = r.json()
+        data = r.json()
+        children = data.get("data", {}).get("children", [])
+        print(f"[reddit] results: {len(children)}")
 
-            for item in data.get("data", {}).get("children", []):
-                p = item.get("data", {})
-                text = (p.get("title", "") + " " + p.get("selftext", ""))
-                print("[reddit] RAW TEXT:", text[:120])
+        for item in children[:3]:
+            p = item.get("data", {})
+            text = (p.get("title", "") + " " + p.get("selftext", ""))
+            print("[reddit] sample text:", text[:120])
 
-
-                code = extract_code(text)
-                if not code:
-                    continue
-
-                posts.append({
-                    "platform": "reddit",
-                    "code": code,
-                    "url": "https://reddit.com" + p.get("permalink", ""),
-                    "timestamp": datetime.utcfromtimestamp(
-                        p.get("created_utc", 0)
-                    ).isoformat() + "Z"
-                })
-
-        except Exception as e:
-            print(f"[reddit] error: {e}")
+            posts.append({
+                "platform": "reddit",
+                "text": text,
+                "url": "https://reddit.com" + p.get("permalink", ""),
+                "timestamp": datetime.utcfromtimestamp(
+                    p.get("created_utc", 0)
+                ).isoformat() + "Z"
+            })
 
     return posts
