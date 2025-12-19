@@ -23,6 +23,8 @@ def fetch(keywords):
 
             text = text_el.get_text(" ", strip=True)
             link = NITTER + link_el["href"]
+            print("[twitter] RAW TEXT:", text)
+
 
             code = extract_code(text, link)
             if not code:

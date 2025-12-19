@@ -31,6 +31,8 @@ def fetch(keywords):
             for item in data.get("data", {}).get("children", []):
                 p = item.get("data", {})
                 text = (p.get("title", "") + " " + p.get("selftext", ""))
+                print("[reddit] RAW TEXT:", text[:120])
+
 
                 code = extract_code(text)
                 if not code:
