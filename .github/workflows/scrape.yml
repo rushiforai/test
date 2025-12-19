@@ -4,6 +4,7 @@ on:
   schedule:
     - cron: "*/30 * * * *"
   workflow_dispatch:
+  on_push:
 
 jobs:
   scrape:
@@ -20,7 +21,9 @@ jobs:
         run: pip install requests beautifulsoup4 lxml
 
       - name: Run scraper
-        run: python scraper/run.py
+        run: |
+           sleep 5
+           python scraper/run.py
 
       - name: Commit changes
         run: |
