@@ -1,5 +1,6 @@
 import requests
 from datetime import datetime
+from utils import extract_code
 
 def fetch(keywords):
     posts = []
@@ -7,23 +8,24 @@ def fetch(keywords):
 
     for kw in keywords:
         url = f"https://www.reddit.com/search.json?q={kw}&sort=new"
-        try:
-            r = requests.get(url, headers=headers, timeout=10)
-            data = r.json()
+        r = requests.get(url, headers=headers, timeout=10)
+        data = r.json()
 
-            for item in data["data"]["children"]:
-                p = item["data"]
-                posts.append({
-                    "platform": "reddit",
-                    "text": p.get("title", ""),
-                    "url": "https://reddit.com" + p.get("permalink", ""),
-                    "author": p.get("author", ""),
-                    "timestamp": datetime.utcfromtimestamp(
-                        p.get("created_utc", 0)
-                    ).isoformat() + "Z",
-                    "source": "reddit"
-                })
-        except Exception:
-            pass
+        for item in data["data"]["children"]:
+            p = item["data"]
+            text = (p.get("title", "") + " " + p.get("selftext", ""))
+            code = extract_code(text)
+
+            if not code:
+                continue
+
+            posts.append({
+                "platform": "reddit",
+                "code": code,
+                "url": "https://reddit.com" + p.get("permalink", ""),
+                "timestamp": datetime.utcfromtimestamp(
+                    p["created_utc"]
+                ).isoformat() + "Z"
+            })
 
     return posts

@@ -1,30 +1,17 @@
-let posts = [];
-
 fetch("../data/posts.json")
   .then(r => r.json())
-  .then(data => {
-    posts = data;
-    render("all");
-  });
+  .then(posts => {
+    const feed = document.getElementById("feed");
 
-function filter(platform) {
-  render(platform);
-}
-
-function render(platform) {
-  const feed = document.getElementById("feed");
-  feed.innerHTML = "";
-
-  posts
-    .filter(p => platform === "all" || p.platform === platform)
-    .forEach(p => {
-      const div = document.createElement("div");
-      div.className = "post";
-      div.innerHTML = `
-        <span class="platform">${p.platform}</span>
-        <a href="${p.url}" target="_blank">${p.text}</a>
-        <div class="meta">${new Date(p.timestamp).toLocaleString()}</div>
+    posts.forEach(p => {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `
+        <strong>${p.code}</strong>
+        <span>${p.platform}</span>
+        <a href="${p.url}" target="_blank">source</a>
+        <span>${new Date(p.timestamp).toLocaleString()}</span>
       `;
-      feed.appendChild(div);
+      feed.appendChild(row);
     });
-}
+  });
