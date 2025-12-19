@@ -1,7 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
-from utils import extract_code
+
+from scraper.utils import extract_code
 
 NITTER_MIRRORS = [
     "https://nitter.net",
