@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from hashlib import sha256
 
-from scraper.twitter_nitter import fetch
+from twitter_nitter import fetch
 
 BASE = Path(__file__).resolve().parent.parent
 DATA = BASE / "data"
