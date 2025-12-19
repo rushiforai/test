@@ -1,45 +1,49 @@
 import requests
 from datetime import datetime
+from utils import extract_code
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0"
-}
+PUSHSHIFT_URL = "https://api.pushshift.io/reddit/search/submission/"
 
 def fetch(keywords):
     posts = []
 
     for kw in keywords:
-        url = f"https://www.reddit.com/search.json?q={kw}&sort=new&limit=25"
-        print(f"[reddit] querying: {url}")
+        url = (
+            f"{PUSHSHIFT_URL}"
+            f"?q={kw}"
+            f"&size=50"
+            f"&sort=desc"
+            f"&sort_type=created_utc"
+        )
 
-        r = requests.get(url, headers=HEADERS, timeout=15)
-        print(f"[reddit] status: {r.status_code}")
-        print(f"[reddit] content-type: {r.headers.get('Content-Type')}")
+        print(f"[pushshift] query: {kw}")
 
-        if r.status_code != 200:
-            continue
+        try:
+            r = requests.get(url, timeout=20)
+            if r.status_code != 200:
+                print(f"[pushshift] HTTP {r.status_code}")
+                continue
 
-        if "json" not in r.headers.get("Content-Type", ""):
-            print("[reddit] blocked (HTML returned)")
-            print(r.text[:200])
-            continue
+            data = r.json().get("data", [])
+            print(f"[pushshift] results: {len(data)}")
 
-        data = r.json()
-        children = data.get("data", {}).get("children", [])
-        print(f"[reddit] results: {len(children)}")
+            for p in data:
+                text = (p.get("title", "") + " " + p.get("selftext", "")).strip()
 
-        for item in children[:3]:
-            p = item.get("data", {})
-            text = (p.get("title", "") + " " + p.get("selftext", ""))
-            print("[reddit] sample text:", text[:120])
+                code = extract_code(text)
+                if not code:
+                    continue
 
-            posts.append({
-                "platform": "reddit",
-                "text": text,
-                "url": "https://reddit.com" + p.get("permalink", ""),
-                "timestamp": datetime.utcfromtimestamp(
-                    p.get("created_utc", 0)
-                ).isoformat() + "Z"
-            })
+                posts.append({
+                    "platform": "reddit",
+                    "code": code,
+                    "url": p.get("full_link") or p.get("url", ""),
+                    "timestamp": datetime.utcfromtimestamp(
+                        p.get("created_utc", 0)
+                    ).isoformat() + "Z"
+                })
+
+        except Exception as e:
+            print(f"[pushshift] error: {e}")
 
     return posts
